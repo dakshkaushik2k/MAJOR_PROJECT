@@ -141,6 +141,7 @@ app.use((err,req,res,next)=>{
   // res.status(statusCode).send(message);
 });
 
-app.listen(8080,()=>{
-    console.log("Listening on port 8080");
+ // Use 8080 as default, or the port provided by the environment
+app.listen("https://major-project-snps.onrender.com", () => {
+    console.log(`Listening on port `);
 });
