@@ -1,5 +1,7 @@
 const express=require("express");
 const MongoStore = require('connect-mongo');
+const session=require("express-session");
+const flash=require("connect-flash");
 
 
 const app=express();
@@ -34,32 +36,43 @@ app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(__dirname,"/public")));
 
 
-const dbURL="mongodb+srv://dakshkaushik2k:CSAI22139@cluster0.jsth8mx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
 main()
 .then(()=>{console.log("Connected successfully");})
 .catch(err => console.log(err));
 
-const store=MongoStore.create({
-  mongoUrl:dbURL,
-  crypto:{
-    secret:"mySuperSecretCode",
-  },
-  touchAfter: 24*3600,
-})
 
-store.on("error",()=>{
-  cosole.log("Error in mongo Session store",err);
-})
 
 async function main() {
-  await mongoose.connect(dbURL);
+  await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
 
 }
 
+const sessionOptions={
+  secret:"mySuperSecretCode",
+  resave:false,
+  saveUninitialized:true,
+  cookie:{
+    expires: Date.now() + 7*26*60*60*1000, // these are milisecons for 1 week
+    maxAge:7*26*60*60*1000,
+    httpOnly:true,
+  },
+};
+
 app.get("/",(req,res)=>{
-    res.send("I am root")
+  res.send("I am root")
 })
+
+app.use(session(sessionOptions));
+app.use(flash());
+
+app.use((req,res,next)=>{
+  res.locals.success=req.flash("success");
+  res.locals.error=req.flash("error");
+  next();
+});
+
+
+
 
 
 
@@ -78,6 +91,8 @@ app.use((err,req,res,next)=>{
   // res.status(statusCode).send(message);
 });
 
-app.listen(8080,()=>{
-    console.log("Listening on port 8080");
+const port = process.env.PORT || 8080;
+
+app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
 });
