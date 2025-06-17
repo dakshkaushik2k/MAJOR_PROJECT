@@ -1,0 +1,86 @@
+<% layout("layouts/boilerplate") %>
+<body>
+    <div class="row mt-2">
+        <div class="col-8 offset-2" >
+            <h3>Create a new Listing</h3>
+
+            <form action="/listings" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" name="listing[title]" placeholder="Add a catchy title" id="title" class="form-control" required>
+                    <div class="valid-feedback">Title looks good!</div>
+                    <div class="invalid-feedback">Enter the title first</div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="listing[description]" id="description" placeholder="Enter description" class="form-control" required></textarea>
+                    <div class="invalid-feedback">Please enter a short description</div>
+                </div>  
+                <div class="mb-3">
+                    <label for="roomType" class="form-label">Room Type</label>
+                    <select name="listing[roomType]"  id="roomType" class="form-select" required>
+                      <option value="">Select a room type</option>
+                      <option value="independent">Independent</option>
+                      <option value="sharing">Sharing</option>
+                    </select>
+                    <div class="valid-feedback">Looks good!</div>
+                    <div class="invalid-feedback">Please select a room type</div>
+                  </div>   
+                  <div id="roommateFields" style="display: none;">
+                    <div class="mb-3">
+                        <label for="roommateHobby" class="form-label">Roommate's Hobby</label>
+                        <input type="text" name="listing[roommateHobby]" id="roommateHobby" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="roommateOccupation" class="form-label">Roommate's Occupation</label>
+                        <input type="text" name="listing[roommateOccupation]" id="roommateOccupation" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="roommateAge" class="form-label">Roommate's Age</label>
+                        <input type="number" name="listing[roommateAge]" id="roommateAge" class="form-control">
+                    </div>
+                </div>   
+                <div class="mb-3">
+                    <label for="image" class="form-label">Image link</label>
+                    <input type="text" name="listing[image]" placeholder="Enter image URL" id="image" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="image" class="form-label">Upload Listing image</label>
+                    <input type="file" name="listing[image]" id="image" class="form-control" required>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-md-4">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" name="listing[price]" placeholder="1200" id="price" class="form-control" required>
+                        <div class="invalid-feedback">Price should be valid</div>
+
+                    </div>
+                    <div class="mb-3 col-md-8">
+                        <label for="country" class="form-label">Country</label>
+                        <input type="text" name="listing[country]" placeholder="India" id="country" class="form-control" required>
+                        <div class="invalid-feedback">Country name should be valid</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" name="listing[location]" placeholder="Jaipur,Rajasthan" id="location" class="form-control" required>
+                    <div class="invalid-feedback">Location should be valid</div>
+                </div>
+                <button class="btn btn-dark add-btn mb-3">Add</button>
+            </form>
+        </div>
+
+    </div>   
+    <script>
+        const roomTypeSelect = document.getElementById('roomType');
+        const roommateFields = document.getElementById('roommateFields');
+
+        roomTypeSelect.addEventListener('change', function () {
+            if (this.value === 'sharing') {
+                roommateFields.style.display = 'block';
+            } else {
+                roommateFields.style.display = 'none';
+            }
+        });
+    </script> 
+</body>
