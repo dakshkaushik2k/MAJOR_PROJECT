@@ -42,7 +42,7 @@ mongoose.connect(mongoURL)
 // ------------------------ SESSION STORE ------------------------
 const store = MongoStore.create({
   mongoUrl: mongoURL,
-  crypto: { secret: process.env.SECRET },
+  crypto: { secret: process.env.SECRET || "thisshouldbeabettersecret" },
   touchAfter: 24 * 3600,
 });
 
@@ -50,13 +50,13 @@ store.on("error", err => console.log("Mongo Session Store Error:", err));
 
 const sessionOptions = {
   store,
-  secret: process.env.SECRET,
+  secret: process.env.SECRET || "thisshouldbeabettersecret",
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false, // changed to false for security
   cookie: {
     httpOnly: true,
-    expires: Date.now() + 7*24*60*60*1000,
-    maxAge: 7*24*60*60*1000
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000
   }
 };
 
@@ -80,7 +80,7 @@ passport.deserializeUser(User.deserializeUser());
 
 // ------------------------ GLOBAL LOCALS MIDDLEWARE ------------------------
 app.use((req, res, next) => {
-  res.locals.currentUser = req.user || null; // ✅ always defined
+  res.locals.currentUser = req.user || null; // always defined
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
@@ -88,8 +88,11 @@ app.use((req, res, next) => {
 
 // ------------------------ ROUTES ------------------------
 app.get("/", (req, res) => res.redirect("/listings"));
+
+// Listing routes (secured individually inside listingRoutes)
 app.use("/listings", listingRoutes);
 
+// Reviews routes (protected)
 app.post(
   "/listings/:id/reviews",
   isLoggedIn,
@@ -104,6 +107,7 @@ app.delete(
   wrapAsync(reviewsController.deleteReview)
 );
 
+// Authentication routes
 app.route("/signup")
   .get(userController.renderSignUpPage)
   .post(wrapAsync(userController.signUp));

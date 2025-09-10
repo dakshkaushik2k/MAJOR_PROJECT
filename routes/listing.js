@@ -1,32 +1,30 @@
 const express = require("express");
 const router = express.Router();
-const listingController = require("../controllers/listing");
-const multer = require("multer");
-const { storage } = require("../cloudConfig");  // ✅ Cloudinary storage
-const upload = multer({ storage });             // ✅ use cloud storage
+const listingsController = require("../controllers/listing");
+const { isLoggedIn, isOwner, validateListing } = require("../middleware");
+const wrapAsync = require("../utils/wrapAsync");
 
-// List all listings
-router.get("/", listingController.index);
+// ------------------------ LISTINGS ROUTES ------------------------
 
-// Search listings
-router.get("/search", listingController.search);
+// Show all listings
+router.get("/", wrapAsync(listingsController.index));
 
-// Render new listing form
-router.get("/new", listingController.renderNewForm);
+// Show form to create new listing (protected)
+router.get("/new", isLoggedIn, wrapAsync(listingsController.renderNewForm));
 
-// Create new listing
-router.post("/", upload.single("image"), listingController.createListing);
+// Create a new listing (protected + validation)
+router.post("/", isLoggedIn, validateListing, wrapAsync(listingsController.createListing));
 
-// Show single listing
-router.get("/:id", listingController.showListing);
+// Show a specific listing
+router.get("/:id", wrapAsync(listingsController.showListing));
 
-// Render edit form
-router.get("/:id/edit", listingController.editRenderForm);
+// Show edit form for a listing (protected + must be owner)
+router.get("/:id/edit", isLoggedIn, isOwner, wrapAsync(listingsController.editRenderForm));
 
-// Update listing
-router.put("/:id", upload.single("image"), listingController.updateListing);
+// Update a listing (protected + must be owner + validation)
+router.put("/:id", isLoggedIn, isOwner, validateListing, wrapAsync(listingsController.updateListing));
 
-// Delete listing
-router.delete("/:id", listingController.destroyListing);
+// Delete a listing (protected + must be owner)
+router.delete("/:id", isLoggedIn, isOwner, wrapAsync(listingsController.destroyListing));
 
 module.exports = router;
