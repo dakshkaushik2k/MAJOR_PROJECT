@@ -50,23 +50,21 @@
           <li class="nav-item">
             <a class="nav-link" href="/listings/new">List your home</a>
           </li>
-          <% if(currentUser){ %>
+
+          <% if(locals.currentUser){ %>
             <li class="nav-item">
               <a class="nav-link" href="/logout"><b>Logout</b></a>
             </li>
-
-          <% } %>
-          <% if(!currentUser){ %>
+          <% } else { %>
             <li class="nav-item">
               <a class="nav-link" href="/signup"><b>Sign-up</b></a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/login"><b>Login</b></a>
             </li>
-
           <% } %>
-          
         </ul>
+
       </div>
     </div>
   </nav>

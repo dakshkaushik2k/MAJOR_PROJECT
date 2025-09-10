@@ -28,8 +28,6 @@ const {
   saveRedirectUrl,
 } = require("./middleware.js");
 
-// ✅ Multer config is handled inside routes, so no need to define here
-
 // ------------------------ ROUTES IMPORT ------------------------
 const listingRoutes = require("./routes/listing");
 const reviewsController = require("./controllers/review.js");
@@ -37,26 +35,18 @@ const userController = require("./controllers/user.js");
 
 // ------------------------ DB CONNECTION ------------------------
 const mongoURL = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
-
-async function main() {
-  await mongoose.connect(mongoURL);
-}
-main()
+mongoose.connect(mongoURL)
   .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.log(err));
+  .catch(err => console.log(err));
 
 // ------------------------ SESSION STORE ------------------------
 const store = MongoStore.create({
   mongoUrl: mongoURL,
-  crypto: {
-    secret: process.env.SECRET,
-  },
+  crypto: { secret: process.env.SECRET },
   touchAfter: 24 * 3600,
 });
 
-store.on("error", (err) => {
-  console.log("Error in Mongo Session Store", err);
-});
+store.on("error", err => console.log("Mongo Session Store Error:", err));
 
 const sessionOptions = {
   store,
@@ -64,10 +54,10 @@ const sessionOptions = {
   resave: false,
   saveUninitialized: true,
   cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-  },
+    expires: Date.now() + 7*24*60*60*1000,
+    maxAge: 7*24*60*60*1000
+  }
 };
 
 // ------------------------ APP CONFIG ------------------------
@@ -88,23 +78,18 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// ------------------------ FLASH & LOCALS ------------------------
+// ------------------------ GLOBAL LOCALS MIDDLEWARE ------------------------
 app.use((req, res, next) => {
-  req.setTimeout(60000);
-  res.locals.currentUser = req.user;
+  res.locals.currentUser = req.user || null; // ✅ always defined
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
 });
 
 // ------------------------ ROUTES ------------------------
-app.get("/", (req, res) => {
-  res.redirect("/listings");
-});
-
+app.get("/", (req, res) => res.redirect("/listings"));
 app.use("/listings", listingRoutes);
 
-// ------------------------ REVIEW ROUTES ------------------------
 app.post(
   "/listings/:id/reviews",
   isLoggedIn,
@@ -119,20 +104,17 @@ app.delete(
   wrapAsync(reviewsController.deleteReview)
 );
 
-// ------------------------ USER ROUTES ------------------------
-app
-  .route("/signup")
+app.route("/signup")
   .get(userController.renderSignUpPage)
   .post(wrapAsync(userController.signUp));
 
-app
-  .route("/login")
+app.route("/login")
   .get(userController.renderLoginPage)
   .post(
     saveRedirectUrl,
     passport.authenticate("local", {
       failureRedirect: "/login",
-      failureFlash: true,
+      failureFlash: true
     }),
     userController.login
   );
@@ -145,12 +127,10 @@ app.all("*", (req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  let { statusCode = 500, message = "Something went wrong!" } = err;
+  const { statusCode = 500, message = "Something went wrong!" } = err;
   res.status(statusCode).render("error.ejs", { err });
 });
 
 // ------------------------ SERVER START ------------------------
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`🚀 Server listening on port ${port}`);
-});
+app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
