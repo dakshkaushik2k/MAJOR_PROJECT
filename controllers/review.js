@@ -3,10 +3,9 @@ const Listing=require("../models/listing");
 
 module.exports.createReview=async(req,res)=>{
     let {id}=req.params;
-  //   console.log(id); used for testing while merging parent route and child route
     let listing=await Listing.findById(id);
     let newReview=new Review(req.body.review);
-    newReview.author=req.user._id;    // Here req.user this the logged in  user
+    newReview.author=req.user._id;   
     console.log(newReview);
 
     listing.reviews.push(newReview);

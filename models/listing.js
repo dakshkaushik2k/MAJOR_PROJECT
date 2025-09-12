@@ -3,8 +3,6 @@ const Schema = mongoose.Schema;
 const Review=require("./review.js");
 const { urlencoded } = require("express");
 
-
-//schema of lisitng
 const listingSchema = new Schema({
   title: {
     type: String,

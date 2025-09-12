@@ -28,18 +28,18 @@ const {
   saveRedirectUrl,
 } = require("./middleware.js");
 
-// ------------------------ ROUTES IMPORT ------------------------
+
 const listingRoutes = require("./routes/listing");
 const reviewsController = require("./controllers/review.js");
 const userController = require("./controllers/user.js");
 
-// ------------------------ DB CONNECTION ------------------------
+
 const mongoURL = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
 mongoose.connect(mongoURL)
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.log(err));
 
-// ------------------------ SESSION STORE ------------------------
+
 const store = MongoStore.create({
   mongoUrl: mongoURL,
   crypto: { secret: process.env.SECRET || "thisshouldbeabettersecret" },
@@ -52,7 +52,7 @@ const sessionOptions = {
   store,
   secret: process.env.SECRET || "thisshouldbeabettersecret",
   resave: false,
-  saveUninitialized: false, // changed to false for security
+  saveUninitialized: false,
   cookie: {
     httpOnly: true,
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
@@ -60,7 +60,6 @@ const sessionOptions = {
   }
 };
 
-// ------------------------ APP CONFIG ------------------------
 app.engine("ejs", ejsMate);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -71,28 +70,28 @@ app.use(express.static(path.join(__dirname, "/public")));
 app.use(session(sessionOptions));
 app.use(flash());
 
-// ------------------------ PASSPORT CONFIG ------------------------
+
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// ------------------------ GLOBAL LOCALS MIDDLEWARE ------------------------
+
 app.use((req, res, next) => {
-  res.locals.currentUser = req.user || null; // always defined
+  res.locals.currentUser = req.user || null; 
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
 });
 
-// ------------------------ ROUTES ------------------------
+
 app.get("/", (req, res) => res.redirect("/listings"));
 
-// Listing routes (secured individually inside listingRoutes)
+
 app.use("/listings", listingRoutes);
 
-// Reviews routes (protected)
+
 app.post(
   "/listings/:id/reviews",
   isLoggedIn,
@@ -107,25 +106,11 @@ app.delete(
   wrapAsync(reviewsController.deleteReview)
 );
 
-// Authentication routes
-app.route("/signup")
-  .get(userController.renderSignUpPage)
-  .post(wrapAsync(userController.signUp));
 
-app.route("/login")
-  .get(userController.renderLoginPage)
-  .post(
-    saveRedirectUrl,
-    passport.authenticate("local", {
-      failureRedirect: "/login",
-      failureFlash: true
-    }),
-    userController.login
-  );
+const userRoutes = require("./routes/user")
+app.use("/", userRoutes)
 
-app.get("/logout", userController.logout);
 
-// ------------------------ ERROR HANDLING ------------------------
 app.all("*", (req, res, next) => {
   next(new ExpressErrors(404, "Page Not Found"));
 });
@@ -135,6 +120,6 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error.ejs", { err });
 });
 
-// ------------------------ SERVER START ------------------------
+
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
